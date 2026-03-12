@@ -1,0 +1,25 @@
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+dist
+build
+.turbo
+
+backend/node_modules
+frontend/node_modules
+
+backend/uploads
+
+# environment / secrets
+.env
+backend/.env
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+

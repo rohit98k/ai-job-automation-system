@@ -1,0 +1,5 @@
+/* Minimal overrides; most styling via Tailwind utilities */
+
+#root {
+  min-height: 100vh;
+}
