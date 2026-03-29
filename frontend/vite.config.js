@@ -10,20 +10,20 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:5000',
+        target: process.env.VITE_API_URL || 'https://ai-job-automation-system.onrender.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
         timeout: 60000,
         configure: (proxy) => {
           proxy.on('error', (err, req, res) => {
-            console.warn('Proxy error (is backend running on port 5000?):', err.message);
+            console.warn('Proxy error:', err.message);
           });
         },
       },
       '/uploads': {
-        target: 'http://127.0.0.1:5000',
+        target: process.env.VITE_API_URL || 'https://ai-job-automation-system.onrender.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
     },
   },

@@ -15,7 +15,15 @@ const emailRoutes = require("./routes/routes/emailRoutes");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173', // Local development
+    'http://localhost:5000', // Local backend
+    'https://ai-job-automation-system-7mna.vercel.app', // Vercel frontend
+    'https://ai-job-automation-system.vercel.app' // Production frontend
+  ],
+  credentials: true
+}));
 app.use(express.json({ limit: "25mb" }));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
