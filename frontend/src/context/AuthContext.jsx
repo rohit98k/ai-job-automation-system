@@ -167,6 +167,7 @@ export function AuthProvider({ children }) {
         setAuthMode,
         authForm,
         authError,
+        setAuthError,
         authLoading,
         showAuthModal,
         setShowAuthModal,
