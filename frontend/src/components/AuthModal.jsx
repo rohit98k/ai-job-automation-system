@@ -7,6 +7,7 @@ export default function AuthModal() {
     setAuthMode,
     authForm,
     authError,
+    setAuthError,
     authLoading,
     showAuthModal,
     setShowAuthModal,

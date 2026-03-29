@@ -10,9 +10,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'https://ai-job-automation-system.onrender.com',
+        target: process.env.VITE_API_URL || 'http://localhost:10000',
         changeOrigin: true,
-        secure: true,
+        secure: false,
         timeout: 60000,
         configure: (proxy) => {
           proxy.on('error', (err, req, res) => {
