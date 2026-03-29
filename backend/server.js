@@ -10,6 +10,8 @@ const resumeRoutes = require("./routes/routes/resumeRoutes");
 const aiRoutes = require("./routes/routes/aiRoutes");
 const jobRoutes = require("./routes/routes/jobRoutes");
 const authRoutes = require("./routes/routes/authRoutes");
+const interviewRoutes = require("./routes/routes/interviewRoutes");
+const emailRoutes = require("./routes/routes/emailRoutes");
 
 const app = express();
 
@@ -26,6 +28,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/resume", resumeRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/jobs", jobRoutes);
+app.use("/api/ai/interview", interviewRoutes);
+app.use("/api/email", emailRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
@@ -45,20 +49,35 @@ app.use((err, req, res, next) => {
 const PORT = Number(process.env.PORT || 5000);
 const MONGODB_URI = process.env.MONGODB_URI;
 
-async function start() {
-  if (!MONGODB_URI) {
-    console.warn("MONGODB_URI missing. Set it in backend/.env to enable MongoDB.");
+// Start server first so it always responds (no 502); then connect DB in background
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+async function connectDB() {
+  let connected = false;
+  if (MONGODB_URI) {
+    try {
+      await mongoose.connect(MONGODB_URI);
+      console.log("MongoDB connected (Atlas/Local)");
+      connected = true;
+    } catch (e) {
+      console.error("MongoDB connection failed, falling back to In-Memory DB:", e.message);
+    }
   } else {
-    await mongoose.connect(MONGODB_URI);
-    console.log("MongoDB connected");
+    console.warn("MONGODB_URI missing. Falling back to In-Memory DB...");
   }
 
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+  if (!connected) {
+    try {
+      const { MongoMemoryServer } = require("mongodb-memory-server");
+      const mongoServer = await MongoMemoryServer.create();
+      const uri = mongoServer.getUri();
+      await mongoose.connect(uri);
+      console.log("In-Memory MongoDB connected at", uri);
+    } catch (err) {
+      console.error("In-Memory DB failed:", err);
+    }
+  }
 }
-
-start().catch((e) => {
-  console.error("Failed to start server", e);
-  process.exit(1);
-});
+connectDB();

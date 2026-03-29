@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>AI Job Automation</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="popup-root">
+      <header class="popup-header">
+        <div class="header-main">
+          <span class="dot"></span>
+          <span class="title">AI Job Automation</span>
+        </div>
+        <span class="tagline">1‑click LinkedIn → Tracker</span>
+      </header>
+
+      <main class="popup-main">
+        <p class="hint">
+          <span class="hint-strong">Step 1:</span>
+          LinkedIn pe koi job detail page kholo.
+          <br />
+          <span class="hint-strong">Step 2:</span>
+          Neeche wala button dabao – job title, company aur description tumhare backend pe save ho
+          jayega.
+        </p>
+
+        <button id="analyze-btn" class="primary-btn">
+          Analyze Job with AI
+        </button>
+
+        <div class="actions-row">
+          <button id="save-job-btn" class="chip-btn">Save to Dashboard</button>
+          <button id="skill-gap-btn" class="chip-btn">Skill Gap</button>
+          <button id="cover-letter-btn" class="chip-btn">Cover Letter</button>
+          <button id="auto-apply-btn" class="chip-btn chip-btn--danger">Auto Apply</button>
+        </div>
+        
+        <button id="generate-search-btn" class="secondary-btn" style="margin-top: 10px; width: 100%;">
+          Generate AI Job Search URL
+        </button>
+
+        <section class="token-section">
+          <details>
+            <summary>API token (optional, recommended)</summary>
+            <label class="token-label">
+              JWT from app (<code>aj_token</code>)
+              <input
+                id="token-input"
+                type="text"
+                placeholder="App se aj_token copy karke yahan paste karo"
+                autocomplete="off"
+              />
+            </label>
+            <button id="save-token-btn" class="secondary-btn">Save token</button>
+          </details>
+        </section>
+
+        <div id="status" class="status"></div>
+      </main>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
+

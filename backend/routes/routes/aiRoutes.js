@@ -150,7 +150,13 @@ router.post("/resume-analyze", async (req, res, next) => {
       if (!doc) return res.status(404).json({ error: "Resume not found" });
       rt = doc.extractedText;
     }
-    if (!rt) return res.status(400).json({ error: "resumeText or resumeId is required" });
+    if (!rt && req.userId) {
+      const latest = await Resume.findOne({ userId: req.userId }).sort({ createdAt: -1 }).lean();
+      if (latest) {
+        rt = latest.extractedText;
+      }
+    }
+    if (!rt) return res.status(400).json({ error: "No resume found for this user" });
 
     const analysis = await chatJson({
       system:
@@ -201,7 +207,13 @@ router.post("/cover-letter", async (req, res, next) => {
       if (!doc) return res.status(404).json({ error: "Resume not found" });
       rt = doc.extractedText;
     }
-    if (!rt) return res.status(400).json({ error: "resumeText or resumeId is required" });
+    if (!rt && req.userId) {
+      const latest = await Resume.findOne({ userId: req.userId }).sort({ createdAt: -1 }).lean();
+      if (latest) {
+        rt = latest.extractedText;
+      }
+    }
+    if (!rt) return res.status(400).json({ error: "No resume found for this user" });
 
     const model = getClientOrNull();
 
@@ -263,6 +275,69 @@ router.post("/cover-letter", async (req, res, next) => {
     res.json({ coverLetter });
   } catch (e) {
     next(e);
+  }
+});
+
+router.get("/generate-search", async (req, res, next) => {
+  try {
+    const latest = await Resume.findOne({ userId: req.userId }).sort({ createdAt: -1 }).lean();
+    if (!latest) return res.status(404).json({ error: "No resume uploaded." });
+    
+    const rt = latest.extractedText || "";
+    const model = getClientOrNull();
+    let keywordsStr = "Engineer";
+    
+    if (model) {
+      try {
+        const prompt = `Extract exactly 3 most prominent technical skills from the resume text below. Return ONLY a comma separated list of the 3 skills, nothing else. Example: React, Node.js, AWS\n\n${rt.slice(0, 5000)}`;
+        const result = await model.generateContent(prompt);
+        keywordsStr = (result.response?.text() || "").trim();
+      } catch (e) {}
+    }
+    
+    // Fallback if AI fails or returns weird format
+    const keywords = keywordsStr.split(",").map(k => k.trim()).join("+");
+    const searchUrl = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(keywords)}&f_AL=true&sort=DD`; // f_AL=true is Easy Apply
+    
+    res.json({ url: searchUrl });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.post("/generate-portfolio", async (req, res, next) => {
+  try {
+    const latest = await Resume.findOne({ userId: req.userId }).sort({ createdAt: -1 }).lean();
+    if (!latest || !latest.extractedText) return res.status(404).json({ error: "Upload a resume first!" });
+
+    const model = getClientOrNull();
+    if (!model) return res.status(400).json({ error: "Gemini API key is required in .env file." });
+
+    const prompt = `You are an elite senior frontend developer and UX designer. Create a STUNNING, single-file HTML portfolio website using standard HTML5 and Tailwind CSS (via CDN) based entirely on the following resume text. 
+
+CRITICAL RULES:
+1. Return ONLY pure raw HTML code. Do NOT wrap it in \`\`\`html markdown. Start exactly with <!DOCTYPE html> and end with </html>.
+2. Include <script src="https://cdn.tailwindcss.com"></script> in the head.
+3. Configure Tailwind smoothly. Add a dark mode UI, smooth scrolling, modern gradients (e.g., bg-gradient-to-r), glassmorphism (backdrop-blur), and hover animations.
+4. Sections required: Awesome Hero (Name, Role, Catchy Tagline), About Me, Experience/Projects, Skills (as cool pill tags), and a Contact Footer.
+5. The design must look like an award-winning $10k tech portfolio. Use deep slate/indigo/violet themes for an ultra-premium feel. Keep all CSS/JS inside the HTML file.
+
+Resume Data:
+${latest.extractedText.slice(0, 5000)}
+`;
+    
+    // Explicitly ask for a large text response and allow higher temperature for creativity
+    const result = await model.generateContent(prompt);
+    let htmlCode = result.response.text();
+    
+    // Sanitize in case Gemini still wraps it in markdown despite instructions
+    if (htmlCode.startsWith("```html")) htmlCode = htmlCode.slice(7);
+    if (htmlCode.startsWith("```")) htmlCode = htmlCode.slice(3);
+    if (htmlCode.endsWith("```")) htmlCode = htmlCode.slice(0, -3);
+
+    res.json({ html: htmlCode.trim() });
+  } catch (err) {
+    next(err);
   }
 });
 
