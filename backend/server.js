@@ -62,30 +62,26 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+
+
+
+
 async function connectDB() {
-  let connected = false;
-  if (MONGODB_URI) {
-    try {
-      await mongoose.connect(MONGODB_URI);
-      console.log("MongoDB connected (Atlas/Local)");
-      connected = true;
-    } catch (e) {
-      console.error("MongoDB connection failed, falling back to In-Memory DB:", e.message);
-    }
-  } else {
-    console.warn("MONGODB_URI missing. Falling back to In-Memory DB...");
+  if (!process.env.MONGODB_URI) {
+    console.error("❌ MONGODB_URI is not defined");
+    process.exit(1);
   }
 
-  if (!connected) {
-    try {
-      const { MongoMemoryServer } = require("mongodb-memory-server");
-      const mongoServer = await MongoMemoryServer.create();
-      const uri = mongoServer.getUri();
-      await mongoose.connect(uri);
-      console.log("In-Memory MongoDB connected at", uri);
-    } catch (err) {
-      console.error("In-Memory DB failed:", err);
-    }
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log("✅ MongoDB connected");
+  } catch (error) {
+    console.error("❌ MongoDB connection failed:", error.message);
+    process.exit(1);
   }
 }
+
+// module.exports = connectDB;
+
+
 connectDB();
